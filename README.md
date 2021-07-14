@@ -17,16 +17,16 @@
 ​	1、本项目核心数据为礼品信息，为其构建的数据结构为
 
 ```go
-type gift struct {
-   createUser        string          		//创建人员
-   createTime        string          		//创建时间
-   giftCode       	string          		//礼品码
-   description    	string          		//礼品描述
-   giftType      		string               //礼品码种类
-   validity      		string          		//有效期
-   availableTimes    string               //可领取次数
-   availedTimes      string               //已领取次数
-   giftDetail        string    	         //礼品内容列表
+type Gift struct {
+	CreateUser 		string				//创建人员
+	CreateTime 		string				//创建时间
+	GiftCode 		string				//礼品码
+	Description 	string				//礼品描述
+	GiftType 		string				//礼品码种类	1、指定用户一次性消耗 2、不指定用户限制兑换次数 3、不限用户不限次数兑换
+	Validity 		string				//有效期		单位：天
+	AvailableTimes 	string				//可领取次数
+	AvailedTimes   	string				//已领取次数
+	GiftDetail	   	string				//礼品内容列表
 }
 ```
 
