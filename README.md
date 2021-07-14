@@ -20,13 +20,13 @@
 type gift struct {
    createUser        string          		//创建人员
    createTime        string          		//创建时间
-   giftCode       	 string          		//礼品码
-   description    	 string          		//礼品描述
-   giftType      		 string             //礼品码种类
-   validity      		 string          		//有效期
-   availableTimes    string             //可领取次数
-   availedTimes      string             //已领取次数
-   giftDetail        string    	        //礼品内容列表
+   giftCode       	string          		//礼品码
+   description    	string          		//礼品描述
+   giftType      		string               //礼品码种类
+   validity      		string          		//有效期
+   availableTimes    string               //可领取次数
+   availedTimes      string               //已领取次数
+   giftDetail        string    	         //礼品内容列表
 }
 ```
 
