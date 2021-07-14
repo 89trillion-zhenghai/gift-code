@@ -200,7 +200,7 @@ func strToMap(str string) map[string]interface{} {
 func getGiftCode() string {
 	str := make([]string,6)
 	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 8; i++ {
 		bt := rand.Intn(10)
 		if bt > 5 {
 			bt = rand.Intn(26)+65

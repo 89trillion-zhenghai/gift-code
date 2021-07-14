@@ -26,7 +26,7 @@ func TestCreateAndGetGiftCode(t *testing.T) {
 }
 
 func TestGetGiftDetail(t *testing.T) {
-	giftCode := "8N440Q"
+	giftCode := ""
 	resMap, err := service.GetGiftDetail(giftCode)
 	if err != nil{
 		fmt.Println(err.Error())
@@ -36,7 +36,7 @@ func TestGetGiftDetail(t *testing.T) {
 }
 
 func TestRedeemGift(t *testing.T) {
-	giftCode := "8N440Q"
+	giftCode := ""
 	userName := "user01"
 	resMap,err := service.RedeemGift(giftCode,userName)
 	if err != nil{
