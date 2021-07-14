@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"gift-code/controller"
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	fmt.Println("hello world")
+	r := gin.Default()
+	r.POST("/createAndGetGiftCode",controller.CreateAndGetGiftCode)
+	r.POST("/getGiftDetail",controller.GetGiftDetail)
+	r.POST("/redeemGift",controller.RedeemGift)
+	r.Run(":8080")
 }
+
+
+
+
