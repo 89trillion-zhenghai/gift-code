@@ -105,9 +105,8 @@ func RedeemGift(gc string,uuid string)(resMap map[string]string,err error){
 		client.HIncrBy("MAIN_"+gc, "AvailableTimes", -1)
 		client.HIncrBy("MAIN_"+gc, "AvailedTimes", 1)
 		//在领取列表追加领取记录
-		client.HSet("REC_"+gc,uuid,now)
-		//获取礼品内容
-		resMap["GiftDetail"] = client.HGet("MAIN_"+gc, "GiftDetail").Val()
+		detail := updateREC(gc, uuid, now, client)
+		resMap["GiftDetail"] = detail
 		//类型2
 	}else if gType == "2"{
 		//判断可领取次数是否>1
@@ -118,7 +117,6 @@ func RedeemGift(gc string,uuid string)(resMap map[string]string,err error){
 		//将可领取次数-1,	已领取次数+1
 		client.HIncrBy("MAIN_"+gc, "AvailableTimes", -1)
 		client.HIncrBy("MAIN_"+gc, "AvailedTimes", 1)
-		//在领取列表追加领取记录
 		//在领取列表追加领取记录
 		detail := updateREC(gc, uuid, now, client)
 		resMap["GiftDetail"] = detail
@@ -148,7 +146,7 @@ func isAvailable(gc string,client *redis.Client) (err error){
 	return nil
 }
 //在领取列表追加领取记录
-func updateREC(gc string,uuid string,time string,client *redis.Client) (detail string){
+func updateREC(gc string,uuid string,time string,client *redis.Client)  string{
 	flag := client.HExists("REC_"+gc, uuid).Val()
 	if flag {
 		times := client.HGet("REC_"+gc, uuid).Val()
@@ -159,8 +157,41 @@ func updateREC(gc string,uuid string,time string,client *redis.Client) (detail s
 		//在领取列表追加领取记录
 		client.HSet("REC_"+gc,uuid,time)
 	}
+	giftDetail := client.HGet("MAIN_"+gc, "GiftDetail").Val()
+	bol := client.Exists("USER_" + uuid).Val()
+	if bol == 0 {
+		client.HMSet("USER_"+uuid,strToMap(giftDetail))
+	}else{
+		//如果用户记录存在，则将用户仓库取出来
+		detail := strToMap(giftDetail)
+		old := client.HGetAll("USER_" + uuid).Val()
+		for k, v := range old {
+			if _, ok := detail[k]; ok {
+				// 存在,将detail[k]的值加上old[k]的值
+				oldN, _ := strconv.Atoi(v)
+				newN, _ := strconv.Atoi(detail[k].(string))
+				detail[k] = oldN+newN
+			}
+			if _, ok := old[k]; !ok {
+				// 不存在
+				detail[k] = v
+			}
+		}
+		client.HMSet("USER_"+uuid,detail)
+	}
 	//获取礼品内容
-	return client.HGet("MAIN_"+gc, "GiftDetail").Val()
+	return giftDetail
+}
+
+//将json型字符串转成map
+func strToMap(str string) map[string]interface{} {
+	res := make(map[string]interface{})
+	bts := []byte(str)
+	err := json.Unmarshal(bts, &res)
+	if err != nil {
+
+	}
+	return res
 }
 
 //随机获得8位礼品码 由大写字母和数字组成

@@ -19,6 +19,11 @@ type RecDetail struct {
 	Detail		[]string	//领取信息列表
 }
 
+type User struct {
+	uuid	string				//用户标识
+	depot	map[string]string	//仓库
+}
+
 func NewGift(crtU string,crtT string,gC string,desc string,gifT string,valid string,avlTimes string,availedTimes string,gifD string) Gift{
 	gift:= Gift{
 		crtU,
