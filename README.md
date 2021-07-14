@@ -18,12 +18,12 @@
 
 ```go
 type Gift struct {
-	CreateUser 		string				//创建人员
-	CreateTime 		string				//创建时间
-	GiftCode 		string				//礼品码
-	Description 	string				//礼品描述
-	GiftType 		string				//礼品码种类	1、指定用户一次性消耗 2、不指定用户限制兑换次数 3、不限用户不限次数兑换
-	Validity 		string				//有效期		单位：天
+	CreateUser 			string				//创建人员
+	CreateTime 			string				//创建时间
+	GiftCode 		  	string				//礼品码
+	Description 		string				//礼品描述
+	GiftType 		  	string				//礼品码种类	1、指定用户一次性消耗 2、不指定用户限制兑换次数 3、不限用户不限次数兑换
+	Validity 		  	string				//有效期		单位：天
 	AvailableTimes 	string				//可领取次数
 	AvailedTimes   	string				//已领取次数
 	GiftDetail	   	string				//礼品内容列表
@@ -62,6 +62,8 @@ func RedeemGift(c *gin.Context){...}
 ​		2、hash 维护领取列表，记录领取信息(领取人：领取时间) 	eg: REC_{giftCode} uuid1:times uuid2:times
 
 ​		3、hash保存礼品主题信息
+
+​		4、hash保存用户仓库信息
 
 ## 流程图
 未命名文件 (4).jpg![未命名文件 (4)](https://user-images.githubusercontent.com/86946999/125587537-409f3b8d-a4e4-4b7c-80f5-6ef39edb27d3.jpg)
