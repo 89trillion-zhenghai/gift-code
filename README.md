@@ -64,6 +64,7 @@ func RedeemGift(c *gin.Context){...}
 ​		3、hash保存礼品主题信息
 
 ## 流程图
-![未命名文件 (1)](https://user-images.githubusercontent.com/86946999/125586913-666fbaa5-a2cd-400b-865e-42a3f774c134.png)
+未命名文件 (4).jpg![未命名文件 (4)](https://user-images.githubusercontent.com/86946999/125587537-409f3b8d-a4e4-4b7c-80f5-6ef39edb27d3.jpg)
+
 
 
