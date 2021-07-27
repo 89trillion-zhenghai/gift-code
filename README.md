@@ -242,7 +242,7 @@ go build
 将代码进一步分层
 
 ## 流程图
-![](/Users/yangzhenghai/workspace/gift-code/gift-code/流程图.jpg)
+![](流程图.jpg)
 
 
 
