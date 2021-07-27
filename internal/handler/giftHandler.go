@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"gift-code/internal/globalError"
 	"gift-code/internal/model"
 	"gift-code/internal/service"
 )
@@ -20,7 +19,7 @@ func GetGiftDetail(giftCode string)(resMap interface{},err error){
 
 
 //RedeemGift 兑换礼品，返回礼品内容
-func RedeemGift(giftCode string,userName string) (resMap interface{},err globalError.TestError){
+func RedeemGift(giftCode string,userName string) (resMap interface{},err error){
 	resMap,err = service.RedeemGift(giftCode,userName)
 	return resMap,err
 }

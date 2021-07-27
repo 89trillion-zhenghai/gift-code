@@ -12,61 +12,237 @@
 
 ​			2、./main 						  ---启动项目
 
-## 功能介绍
+## 目录结构
 
-​	1、本项目核心数据为礼品信息，为其构建的数据结构为
+```tree
+├── README.md
+├── __pycache__
+│   └── locust.cpython-39.pyc
+├── app
+│   ├── http
+│   │   └── httpServer.go
+│   ├── main
+│   └── main.go
+├── go.mod
+├── go.sum
+├── internal
+│   ├── ctrl
+│   │   └── giftController.go
+│   ├── globalError
+│   │   ├── error.go
+│   │   └── errorHandler.go
+│   ├── handler
+│   │   ├── giftHandler.go
+│   │   └── giftHandler_test.go
+│   ├── model
+│   │   ├── GifCodetInfo.go
+│   │   ├── ReceiveInfo.go
+│   │   ├── redisPool.go
+│   │   └── redisTemplate.go
+│   ├── router
+│   │   └── Routes.go
+│   ├── service
+│   │   └── giftService.go
+│   ├── utils
+│   │   └── GeneralUtils.go
+│   └── verify
+│       └── paramter.go
+├── locust.py
+└── report.html
+```
 
-```go
-type Gift struct {
-	CreateUser 			string				//创建人员
-	CreateTime 			string				//创建时间
-	GiftCode 		  	string				//礼品码
-	Description 		string				//礼品描述
-	GiftType 		  	string				//礼品码种类	1、指定用户一次性消耗 2、不指定用户限制兑换次数 3、不限用户不限次数兑换
-	Validity 		  	string				//有效期		单位：天
-	AvailableTimes 	string				//可领取次数
-	AvailedTimes   	string				//已领取次数
-	GiftDetail	   	string				//礼品内容列表
+
+
+## 代码逻辑分层
+
+| 层          | 文件夹                           | 主要职责             | 调用关系                    | 其它说明     |
+| ----------- | -------------------------------- | -------------------- | --------------------------- | ------------ |
+| 应用层      | /app/http/httpServer.go          | 服务器启动           | 调用路由层                  | 不可同层调用 |
+| 路由层      | /internal/router/Routes.go       | 路由转发             | 被应用层调用，调用控制层    | 不可同层调用 |
+| 控制层      | /internal/ctrl/giftController.go | 参数校验、请求处理   | 被路由层调用，调用handler   | 不可同层调用 |
+| handler层   | /internal/handler/giftHandler.go | 通用业务处理         | 被控制层调用，调用service层 | 不可同层调用 |
+| 工具层      | /utils/GeneralUtils.go           | 生成随机码           | 被handler调用               | 不可同层调用 |
+| Verify      | /internal/verify                 | 参数校验             | 被ctrl调用                  | 不可同层调用 |
+| 模型层      | /internal/model                  | 数据模型、数据库操作 | 被handler、service调用      | 可同层调用   |
+| service     | /internal/service                | 通用业务逻辑         | 被handler调用、调用模型层   | 可同层调用   |
+| globalError | /internal/globalError            | 统一异常处理         | 被router调用                | 不可同层调用 |
+
+## 存储设计
+
+礼品码信息
+
+| 内容                                                         | 数据库 | Key            |
+| ------------------------------------------------------------ | ------ | -------------- |
+| 创建人员                                                     | Redis  | CreateUser     |
+| 创建时间                                                     | Redis  | CreateTime     |
+| 礼品码                                                       | Redis  | GiftCode       |
+| 礼品描述                                                     | Redis  | Description    |
+| 礼品码种类   1、指定用户一次性消耗 2、不指定用户限制兑换次数 3、不限用户不限次数兑换 | Redis  | GiftType       |
+| 过期时间戳                                                   | Redis  | Validity       |
+| 可领取次数                                                   | Redis  | AvailableTimes |
+| 礼品内容列表  1001:金币 1002:钻石 1003:道具 1004:英雄 1005:小兵 | Redis  | GiftDetail     |
+
+领取列表key为
+
+| key                  | Filed    | Value | 数据库 |
+| -------------------- | -------- | ----- | ------ |
+| 前缀DETAIL_+giftCode | Username | Time  | Redis  |
+
+已领取次数
+
+| 内容       | 数据库 | Key                                 |
+| ---------- | ------ | ----------------------------------- |
+| 已领取次数 | Redis  | 前缀AVAILABLE_+对应的礼品码giftCode |
+
+## 接口设计
+
+### 1、管理员创建礼品码接口
+
+#### 请求方法
+
+http POST
+
+#### 接口地址
+
+http://127.0.0.1:8080/createAndGetGiftCode
+
+#### 请求参数
+
+```
+{
+    "userName":"admin",  
+    "description":"十周年纪念",
+    "giftType":"2",
+    "validity":"10m",
+    "availableTimes":"20",
+    "giftDetail":"{"1001":"2","1003":"3"}",
 }
 ```
 
-​	2、实现三个接口
+#### 请求响应
 
-```go
-//CreateAndGetGiftCode 创建一个礼品对象，返回一个礼品码
-func CreateAndGetGiftCode(c *gin.Context)  {...}
-
-//GetGiftDetail 查询礼品信息
-func GetGiftDetail(c *gin.Context){...}
-
-//RedeemGift 兑换礼品
-func RedeemGift(c *gin.Context){...}
+```
+{
+    "data": "6502M6S6"
+}
 ```
 
-## 数据库设计
+### 2、管理员查询礼品码接口
 
-​	1、本项目采用redis保存相关数据，redis有五种基本数据类型和几种特殊数据类型，根据项目需求分析，存储的数据需要完成以下功能。
+#### 请求方法
 
-​		1、设置有效时间，如果到期则将其设置为已过期并且将其持久化
+http GET
 
-​		2、用户输入符合要求的礼品码返回奖品内容
+#### 接口地址
 
-​		3、当用户成功兑换礼品时需要将已领取次数+1
+http://127.0.0.1:8080/getGiftDetail
 
-​		4、管理员查看礼品码对应礼品领取情况
+#### 请求参数
 
-2、用到以下数据类型保存数据
+```
+giftCode=6502M6S6
+```
 
-​		1、set维护礼品码，保证礼品码不重复 	eg: GIFT_CODE 123    gift_code 234    
+#### 请求响应
 
-​		2、hash 维护领取列表，记录领取信息(领取人：领取时间) 	eg: REC_{giftCode} uuid1:times uuid2:times
+```
+{
+    "data": {
+        "AvailableDetail": {
+            "smallbai": "2021-07-27 21:05:13",
+            "yangzhenghai": "2021-07-27 21:05:28"
+        },
+        "AvailableTime": "2",
+        "AvailableTimes": "20",
+        "CreateTime": "2021-07-27 21:02:31",
+        "CreateUser": "admin",
+        "Description": "十周年纪念",
+        "GiftCode": "6502M6S6",
+        "GiftDetail": "{\"1001\":\"2\",\"1003\":\"3\"}",
+        "GiftType": "2",
+        "Validity": "1627391551"
+    },
+    "status": 200
+}
+```
 
-​		3、hash保存礼品主题信息
+### 3、用户领取礼品接口
 
-​		4、hash保存用户仓库信息
+#### 请求方法
+
+http POST
+
+#### 接口地址
+
+http://127.0.0.1:8080/redeemGift
+
+#### 请求参数
+
+```
+"giftCode": "6502M6S6"
+"userName": "smallbai"
+```
+
+#### 请求响应
+
+```
+{
+    "data": "{\"1001\":\"2\",\"1003\":\"3\"}",
+    "status": 200
+}
+```
+
+### 响应状态码
+
+| 状态码 | 说明                     |
+| ------ | ------------------------ |
+| 无     | 成功                     |
+| 1001   | 服务器异常               |
+| 1002   | redis连接异常            |
+| 1003   | 礼品码已过期             |
+| 1004   | 该用户已经领取过礼品码了 |
+| 1005   | 礼品码不存在/错误        |
+| 1006   | 礼品码已失效             |
+| 1007   | 礼品被领取完毕           |
+| 1008   | 参数为空                 |
+| 1009   | 参数不合法               |
+
+## 第三方库
+
+### gin
+
+```
+go语言的web框架
+https://github.com/gin-gonic/gin
+```
+
+### go-redis
+
+```
+go语言连接操作redis数据库
+https://github.com/go-redis
+```
+
+## 如何编译执行
+
+进入app目录编译
+
+```
+go build
+```
+
+运行可执行文件
+
+```
+./app
+```
+
+## todo
+
+将代码进一步分层
 
 ## 流程图
-未命名文件 (4).jpg![未命名文件 (4)](https://user-images.githubusercontent.com/86946999/125587537-409f3b8d-a4e4-4b7c-80f5-6ef39edb27d3.jpg)
+![](/Users/yangzhenghai/workspace/gift-code/gift-code/流程图.jpg)
 
 
 
